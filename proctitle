@@ -1,0 +1,89 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+ 
+extern char** environ;
+ 
+static char *plast;
+static char *argv0;
+ 
+int main(int argc, char* argv[])
+{
+   char s_title[] = "ymc title ymc title";
+ 
+   printf("-------------------------------------------------\n");
+   dumpenv();
+   printf("===============================================\n");
+   my_initproctitle(argv );
+   my_setproctitle( s_title);
+   dumpenv();
+   printf("-------------------------------------------------\n");
+ 
+    while(1)
+    {
+        system("ps -ef|awk '$8 ~ /ymc/ {print $0}'");
+        sleep(10);
+    }
+ 
+    return 0;
+}
+
+ 
+void my_initproctitle(char* argv[])
+{
+    argv0=argv[0];
+    int i = 0;
+    char* p_tmp = NULL;
+    size_t i_size = 0;
+ 
+    for(i = 0; environ[i]; i++){
+        i_size += strlen(environ[i]) + 1;
+    }
+ 
+    p_tmp = malloc(i_size);
+    if(p_tmp == NULL){
+        return ;
+    }
+ 
+//    *last = argv[0];
+    plast=argv[0];
+    for(i = 0; argv[i]; i++){
+//        *last += strlen(argv[i]) + 1;
+        plast += strlen(argv[i]) + 1;
+		
+    }
+ 
+    for(i = 0; environ[i]; i++){
+        i_size = strlen(environ[i]) + 1;
+        plast += i_size;
+//        *last += i_size;
+ 
+        strncpy(p_tmp, environ[i], i_size);
+        environ[i] = p_tmp;
+        p_tmp += i_size;
+    }
+ 
+    (plast)--;
+ 
+    return ;
+ 
+}
+
+void dumpenv(){
+	int i;
+    for(i = 0; environ[i]; i++){
+		printf("%s\n",environ[i]);
+    }
+
+}
+
+
+void my_setproctitle( char* title)
+{
+    /* memset(p_tmp, 0, *last - p_tmp); */
+    strncpy(argv0, title, plast - argv0);
+    argv0[strlen(title)]='\0';
+ 
+    return ;
+}
